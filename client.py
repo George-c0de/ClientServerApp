@@ -21,7 +21,6 @@ async def auto_tcp_client() -> None:
         )
 
     for cmd in command_templates:
-        # Подставляем значение i в шаблон
         print("Отправка команды:", cmd)
         writer.write((cmd + "\n").encode())
         await writer.drain()

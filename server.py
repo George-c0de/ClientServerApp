@@ -8,6 +8,7 @@ from commands import Command
 from settings import settings
 from asyncpg.pool import Pool
 
+# TODO(GEORGE): use pypika in row query
 class VirtualMachine:
     """Класс, представляющий виртуальную машину (клиента)"""
     def __init__(self, vm_id: str, ram: int, cpu: int, disks: list[tuple[str, int]], writer: StreamWriter) -> None:
@@ -31,11 +32,12 @@ class ServerApp:
     def __init__(self) -> None:
         self.settings = settings
         # Словарь для хранения активных подключений ВМ (in-memory кеш для уменьшения запросов к БД)
-        self.connected_vms: dict[str, VirtualMachine] = {}
+        self.connected_vms: dict[str, VirtualMachine] = {} # TODO(GEORGE): Заменить на redis
         self._db_pool: Pool | None = None
 
     @property
     def db_pool(self) -> Pool:
+        """Проверка что пул существует."""
         if self._db_pool is None:
             raise ValueError("db pool not initialized")
         return self._db_pool
@@ -246,8 +248,8 @@ class ServerApp:
                     await writer.drain()
 
                 elif command == Command.LIST_DISKS:
-                    disks = await self.list_all_disks()
-                    writer.write((json.dumps(disks, ensure_ascii=False) + "\n").encode())
+                    disks_list = await self.list_all_disks()
+                    writer.write((json.dumps(disks_list, ensure_ascii=False) + "\n").encode())
                     await writer.drain()
 
                 elif command == Command.LOGOUT:

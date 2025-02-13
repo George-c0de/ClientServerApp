@@ -2,6 +2,7 @@ from enum import StrEnum
 
 
 class Command(StrEnum):
+    """Команды для VM"""
     AUTH = "AUTH"
     ADD_VM = "ADD_VM"
     LIST_CONNECTED = "LIST_CONNECTED"
