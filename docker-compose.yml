@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vmdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: DockerfileServer
+    depends_on:
+        db:
+          condition: service_healthy
+    ports:
+      - "8888:8888"
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=vmdb
+      - DB_PORT=5432
+      - AUTH_PASSWORD=secret
+
+  client:
+    build:
+      context: .
+      dockerfile: DockerfileClient
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=8888
+    depends_on:
+      - server
+    stdin_open: true
+    tty: true
+
+volumes:
+  pgdata:
